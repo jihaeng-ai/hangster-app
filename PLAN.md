@@ -105,7 +105,7 @@
 
 31. ✅ 성공 기준 측정: 대표 질문 10개를 만들어 S2·S3·S4를 측정하고 결과를 기록하기
 32. ✅ 보안 점검: 비로그인 차단, API 키 브라우저 노출 여부, 외부 AI로 가는 내용, 개인정보 포함 여부 확인하기 (S6)
-33. ⏸ (보류 2026-11-19 — 사용자가 나중에 진행하기로 함, 계정 준비 완료) Vercel 배포: `.env`의 `VERCEL_TOKEN`으로 Vercel CLI 인증, 환경변수 설정 후 샘플 파일로 배포본 확인하기
+33. ✅ (2026-11-20 배포 완료: https://hangster-app.vercel.app · 저장소 https://github.com/jihaeng-ai/hangster-app) Vercel 배포: `.env`의 `VERCEL_TOKEN`으로 Vercel CLI 인증, 환경변수 설정 후 샘플 파일로 배포본 확인하기
 
 **추가 작업 (계획 밖, 사용자 요청으로 진행)**
 
@@ -144,5 +144,5 @@
 ## 다음 단계
 
 - 설계 [DESIGN.md](DESIGN.md) v0.2 (구현과 일치), 점검 결과 [CHECK.md](CHECK.md)
-- 남은 일: **작업 33 Vercel 배포** — 사용자가 진행하기로 하면 시작 (계정 준비 완료)
+- ✅ 작업 33 Vercel 배포 완료 (2026-11-20): https://hangster-app.vercel.app
 - 권장: 담당자 외 직원 1명이 대표 질문 10개로 대시보드를 직접 시험 (S2 사람 확인)

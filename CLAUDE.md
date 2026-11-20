@@ -75,7 +75,8 @@ npm run lint
 - `start-dashboard.cmd`에는 한글을 넣지 않는다 (cmd가 UTF-8 배치 파일을 잘못 읽는다). 한글 안내는 `.ps1`에 둔다 (UTF-8 BOM).
 - 서버를 끌 때는 실행기 창(프로세스 트리)째 닫는다. 서버 프로세스만 끄면 Next가 다시 띄운다.
 - 테스트 프레임워크는 아직 없다. 검증은 위의 **0-1. 작업 절차(검증 루프)**를 따른다.
-- 이 폴더는 아직 git 저장소가 아니다.
+- git 저장소: https://github.com/jihaeng-ai/hangster-app (공개, `main`). 배포: https://hangster-app.vercel.app (Vercel CLI, 팀 `hangster`). 커밋 작성자 메일은 GitHub noreply 주소를 쓴다 (개인 메일 공개 금지).
+- Vercel 환경변수는 앱 실행용 7개만 둔다: `OPENAI_API_KEY`, `OPENAI_MODEL`, `AUTH_SECRET`(배포 전용 값), `AUTH_MANAGER_ID`/`AUTH_MANAGER_PASSWORD`, `AUTH_EXEC_ID`/`AUTH_EXEC_PASSWORD`. GitHub·Vercel·Supabase 토큰은 올리지 않는다.
 
 ## 3. Next.js 16 작업 규칙 (중요)
 
