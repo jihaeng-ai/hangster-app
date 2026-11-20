@@ -6,7 +6,7 @@ const cases: [string, string[]][] = [
     { period: "2019", value: 3.1 }, { period: "2020", value: 1.8 }, { period: "2025", value: 3.3 }, { period: "2026", value: 3.0 }])],
   ["차량(중간 빈 값)", describeChange("노동조합 차량 지원 현황", "대", "year", [
     { period: "2023", value: 3 }, { period: "2024", value: null }, { period: "2025", value: 4 }, { period: "2026", value: 5 }])],
-  ["인력(명)", describeChange("의료원 인력 현황", "명", "year", [
+  ["인력(명)", describeChange("노동조합 조합원 현황", "명", "year", [
     { period: "2025", value: 1991 }, { period: "2026", value: 2023 }])],
   ["월별", describeChange("초과근무", "시간", "month", [
     { period: "2026-08", value: 120 }, { period: "2026-09", value: 120 }])],
@@ -14,7 +14,7 @@ const cases: [string, string[]][] = [
     { period: "2024", value: 3 }, { period: "2025", value: 4 }, { period: "2026", value: 4 }])],
   ["값이 모두 비어 있음", describeChange("노동조합 차량 지원 현황", "대", "year", [
     { period: "2025", value: null }, { period: "2026", value: null }])],
-  ["1개 기간", describeChange("의료원 인력 현황", "명", "year", [{ period: "2026", value: 10 }])],
+  ["1개 기간", describeChange("노동조합 조합원 현황", "명", "year", [{ period: "2026", value: 10 }])],
 ];
 let fail = 0;
 for (const [name, s] of cases) {

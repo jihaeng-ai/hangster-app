@@ -8,7 +8,7 @@ import { buildAnswer } from "@/lib/ai/answer";
 import type { Interpretation } from "@/lib/ai/interpret";
 import type { DataPoint } from "@/lib/data/types";
 import { getMetric, periodInRange } from "@/lib/metrics/definitions";
-import { buildNumericSeries, periodTotal, type DashboardData } from "@/lib/metrics/series";
+import { buildNumericSeries, buildSectionSeries, periodTotal, type DashboardData } from "@/lib/metrics/series";
 
 let fail = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -65,6 +65,25 @@ async function main() {
     legalNoData.status === "no_data" && legalNoData.sentences.some((s) => s.includes("담당자에게 확인")),
     legalNoData.sentences.join(" / "),
   );
+
+  console.log("\n== 투표율: 갈래 2개를 섞지 않음 (2026-11-20)");
+  const votesDef = getMetric("union-votes");
+  const votePts = [
+    pt("union-votes", "2023", "임단협 찬반투표", 79.8, "%"), pt("union-votes", "2026", "임단협 찬반투표", 84.0, "%"),
+    pt("union-votes", "2023", "임원(지부장) 선거", 74.2, "%"), pt("union-votes", "2026", "임원(지부장) 선거", 69.8, "%"),
+  ];
+  const votes = { ...buildNumericSeries(votesDef, votePts), description: [], sections: buildSectionSeries(votesDef, votePts) };
+  check("두 투표율을 더하지 않음 (합계 null)", votes.totals.every((t) => t.value === null));
+  check("갈래 2개", votes.sections?.length === 2);
+  check("선거 변화 설명은 2023년 대비", votes.sections?.[1].description[0]?.includes("2023년 대비 4.4%p") ?? false, votes.sections?.[1].description[0]);
+  const vData: DashboardData = { series: [votes], officers: [], officerSources: [], isEmpty: false };
+  const vInterp: Interpretation = { intent: "metric", metricId: "union-votes", periodFrom: null, periodTo: null, category: null, recentCount: null, aggregation: "latest" };
+  const both = buildAnswer(vInterp, vData, false, "노조 투표율은?");
+  check("구분 없이 물으면 두 갈래 모두 답", both.sentences.length === 2 && both.sentences[0].includes("84.0%") && both.sentences[1].includes("69.8%"), both.sentences.join(" / "));
+  const elec = buildAnswer(vInterp, vData, false, "지부장 선거 투표율은?");
+  check("선거만 물으면 선거 값만", elec.sentences.join(" ").includes("69.8%") && !elec.sentences.join(" ").includes("84.0%"), elec.sentences.join(" / "));
+  const barg = buildAnswer({ ...vInterp, category: "임단협 찬반투표", aggregation: "trend" }, vData, false, "임단협 찬반투표율 추이");
+  check("임단협 추이", (barg.sentences[0]?.includes("임단협 찬반투표 투표율") ?? false) && barg.sentences[0].includes("84.0%"), barg.sentences.join(" / "));
 
   console.log("\n== Gap 1: 바꾸기는 겹치는 값만 교체 (임시 폴더)");
   // 안전장치: 시험 전후로 프로젝트의 실제 data/store.json이 그대로인지 확인한다

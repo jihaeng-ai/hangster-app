@@ -55,6 +55,27 @@ async function MetricDetail({ params }: { params: Promise<{ metricId: string }> 
             <SourceNote sources={series.sources} />
           </div>
         </div>
+      ) : hasData && series.sections ? (
+        // 투표율: 임단협 찬반투표 / 임원(지부장) 선거를 구역 2개로 나눠 각각 차트·출처·표·변화 설명 (2026-11-20 사용자 요청)
+        series.sections.map((sec) => (
+          <section key={sec.name} className="flex flex-col gap-3" aria-labelledby={`sec-${sec.name}`}>
+            <h2 id={`sec-${sec.name}`} className="text-lg font-semibold text-white">{sec.name}</h2>
+            {sec.totals.length > 0 ? (
+              <>
+                <div className="rounded-xl border border-zinc-200 bg-[var(--viz-surface)] p-4 dark:border-zinc-800">
+                  <MetricChart chart={series.metric.chart} unit={series.metric.unit} rows={sec.rows} categories={[]} label={`${sec.name} 투표율`} />
+                  <div className="mt-3 flex flex-col gap-3">
+                    <SourceNote sources={sec.sources} />
+                    <DataTable rows={sec.rows} categories={[]} unit={series.metric.unit} />
+                  </div>
+                </div>
+                <ChangeSummary sentences={sec.description} />
+              </>
+            ) : (
+              <p className="rounded-xl bg-white p-5 text-sm text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">이 구분은 아직 올라온 데이터가 없습니다. 담당자에게 문의하세요</p>
+            )}
+          </section>
+        ))
       ) : hasData ? (
         <>
           <div className="rounded-xl border border-zinc-200 bg-[var(--viz-surface)] p-4 dark:border-zinc-800">

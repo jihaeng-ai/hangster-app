@@ -3,9 +3,10 @@
 /** 지표 ID — 첫 화면 핵심 지표 (최대 6개까지 늘릴 수 있음) */
 export type MetricId =
   | "wage-increase" // 연도별 임금 인상률
-  | "workforce" // 의료원 인력 현황
+  | "workforce" // 노동조합 조합원 현황 (예전 이름: 의료원 인력 현황)
   | "union-officers" // 노동조합 전임자 현황
-  | "union-vehicles"; // 노동조합 차량 지원 현황
+  | "union-vehicles" // 노동조합 차량 지원 현황
+  | "union-votes"; // 노동조합 투표율 (임단협 찬반투표 / 임원 선거, 2026-11-20)
 
 /** 기간: 연도별 "2024", 월별 "2024-03" */
 export type Period = string;

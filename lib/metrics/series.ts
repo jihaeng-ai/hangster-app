@@ -32,6 +32,18 @@ export interface MetricSeries {
   hasPdf: boolean;
   /** 변화 설명 (최대 3문장) */
   description: string[];
+  /** 갈래가 있는 지표(예: 투표율)는 갈래마다 따로 계산한 값 */
+  sections?: SectionSeries[];
+}
+
+/** 한 카드 안의 갈래 하나 (예: 임단협 찬반투표) */
+export interface SectionSeries {
+  name: string;
+  totals: { period: string; value: number | null }[];
+  rows: ChartRow[];
+  latest: { period: string; value: number | null } | null;
+  sources: SourceSummary[];
+  description: string[];
 }
 
 /** 화면(조직도)으로 보내는 전임간부 한 명 */
@@ -163,6 +175,25 @@ function buildOfficerSeries(metric: MetricDefinition, store: Store): Omit<Metric
 }
 
 /** 대시보드 전체 데이터 — 캐시해서 버튼을 누른 뒤 3초 안에 보이게 한다 (PRD Must1-4) */
+/** 갈래가 있는 지표(예: 투표율): 갈래마다 따로 값·변화 설명을 만든다 (두 값을 섞거나 더하지 않음) */
+export function buildSectionSeries(metric: MetricDefinition, points: DataPoint[]): SectionSeries[] | undefined {
+  return metric.sections?.map((sec) => {
+    const pts = points.filter((p) => p.metricId === metric.id && p.category === sec.name);
+    const totals = [...new Set(pts.map((p) => p.period))].sort().map((period) => {
+      const hits = pts.filter((p) => p.period === period);
+      return { period, value: hits.length === 1 ? hits[0].value : null };
+    });
+    return {
+      name: sec.name,
+      totals,
+      rows: totals.map((t) => ({ period: t.period, value: t.value })),
+      latest: totals.at(-1) ?? null,
+      sources: summarizeSources(pts.map((p) => p.source)),
+      description: describeChange(`${sec.name} 투표율`, metric.unit, metric.periodUnit, totals),
+    };
+  });
+}
+
 export async function getDashboardData(): Promise<DashboardData> {
   "use cache";
   cacheTag(DATASET_TAG);
@@ -173,9 +204,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       metric.id === "union-officers"
         ? buildOfficerSeries(metric, store)
         : buildNumericSeries(metric, store.points.filter((p) => p.metricId === metric.id));
+    const sections = buildSectionSeries(metric, store.points);
     return {
       ...base,
-      description: describeChange(base.metric.label, base.metric.unit, base.metric.periodUnit, base.totals),
+      description: sections ? [] : describeChange(base.metric.label, base.metric.unit, base.metric.periodUnit, base.totals),
+      ...(sections ? { sections } : {}),
     };
   });
 

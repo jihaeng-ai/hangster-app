@@ -10,6 +10,7 @@ import {
   PDF_FILE_NAME,
   SAMPLE_BASE_DATE,
   UNION_VEHICLES,
+  UNION_VOTES,
   WAGE_INCREASE,
   WORKFORCE,
   WORKFORCE_JOBS,
@@ -39,6 +40,13 @@ async function makeExcel() {
   workforce.addRow(["연도", "직종", "인원(명)"]);
   for (const [year, byJob] of Object.entries(WORKFORCE)) {
     for (const job of WORKFORCE_JOBS) workforce.addRow([year, job, byJob[job]]);
+  }
+
+  // 투표율: 구분(임단협 찬반투표 / 임원(지부장) 선거)마다 한 줄씩 (2026-11-20)
+  const votes = wb.addWorksheet("투표율");
+  votes.addRow(["연도", "구분", "투표율(%)"]);
+  for (const [kind, byYear] of Object.entries(UNION_VOTES)) {
+    for (const [year, rate] of Object.entries(byYear)) votes.addRow([year, kind, rate]);
   }
 
   // 전임간부 명단은 이 파일에 넣지 않는다 — data/samples/연도별 전임간부 현황.xlsx(사용자 제공, 기간별 명단)를 쓴다 (2026-11-19)

@@ -18,32 +18,18 @@ export interface MetricDefinition {
   sheetNames: string[];
   /** PDF "[지표] …" 줄로 지표를 알아보는 데 쓰는 이름들 */
   pdfTitles: string[];
+  /**
+   * 한 카드 안에서 따로 보여줄 갈래 (예: 투표율 = 임단협 찬반투표 / 임원 선거)
+   * name은 데이터의 구분 값과 같아야 하고, aliases는 AI 질문에서 이 갈래를 알아보는 낱말이다
+   */
+  sections?: { name: string; aliases: string[] }[];
 }
 
 /** 첫 화면 핵심 지표는 최대 6개 (PRD Must1-2) */
 export const MAX_SUMMARY_CARDS = 6;
 
+// 이 배열 순서가 첫 화면 카드 순서다 — 전임간부 → 조합원 → 임금 인상률 → 차량 지원 → 투표율 (2026-11-20 사용자 요청)
 export const METRICS: readonly MetricDefinition[] = [
-  {
-    id: "wage-increase",
-    label: "연도별 임금 인상률",
-    unit: "%",
-    periodUnit: "year",
-    chart: "line",
-    aggregate: "single",
-    sheetNames: ["임금인상률", "임금 인상률"],
-    pdfTitles: ["임금 인상률", "연도별 임금 인상률"],
-  },
-  {
-    id: "workforce",
-    label: "의료원 인력 현황",
-    unit: "명",
-    periodUnit: "year",
-    chart: "stacked-bar",
-    aggregate: "sum",
-    sheetNames: ["인력현황", "인력 현황"],
-    pdfTitles: ["인력 현황", "의료원 인력 현황"],
-  },
   {
     id: "union-officers",
     label: "노동조합 전임간부 현황", // 2026-11-19 사용자 요청으로 "전임자" → "전임간부"
@@ -55,6 +41,27 @@ export const METRICS: readonly MetricDefinition[] = [
     pdfTitles: ["노동조합 전임자 현황", "노동조합 전임간부 현황"],
   },
   {
+    id: "workforce",
+    label: "노동조합 조합원 현황", // 2026-11-20 사용자 요청으로 "의료원 인력 현황" → "노동조합 조합원 현황"
+    unit: "명",
+    periodUnit: "year",
+    chart: "stacked-bar",
+    aggregate: "sum",
+    // 예전 이름(인력현황)으로 만든 파일도 계속 읽는다
+    sheetNames: ["인력현황", "인력 현황", "조합원현황", "조합원 현황", "노동조합 조합원 현황"],
+    pdfTitles: ["인력 현황", "의료원 인력 현황", "조합원 현황", "노동조합 조합원 현황"],
+  },
+  {
+    id: "wage-increase",
+    label: "연도별 임금 인상률",
+    unit: "%",
+    periodUnit: "year",
+    chart: "line",
+    aggregate: "single",
+    sheetNames: ["임금인상률", "임금 인상률"],
+    pdfTitles: ["임금 인상률", "연도별 임금 인상률"],
+  },
+  {
     id: "union-vehicles",
     label: "노동조합 차량 지원 현황",
     unit: "대",
@@ -63,6 +70,21 @@ export const METRICS: readonly MetricDefinition[] = [
     aggregate: "single",
     sheetNames: ["차량지원", "노조차량지원"],
     pdfTitles: ["노동조합 차량 지원 현황", "차량 지원 현황"],
+  },
+  {
+    // 2026-11-20 사용자 요청: 투표율 카드 하나에 두 갈래
+    id: "union-votes",
+    label: "노동조합 투표율",
+    unit: "%",
+    periodUnit: "year",
+    chart: "line",
+    aggregate: "single", // 두 투표율을 더하지 않는다
+    sheetNames: ["투표율", "노동조합 투표율"],
+    pdfTitles: ["투표율", "노동조합 투표율"],
+    sections: [
+      { name: "임단협 찬반투표", aliases: ["임단협", "찬반", "단체협약", "임금협약", "단협", "협약"] },
+      { name: "임원(지부장) 선거", aliases: ["선거", "임원", "지부장", "위원장"] },
+    ],
   },
 ];
 

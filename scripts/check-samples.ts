@@ -12,6 +12,7 @@ import {
   ROSTER_EXPECT,
   ROSTER_FILE_NAME,
   UNION_VEHICLES,
+  UNION_VOTES,
   WAGE_INCREASE,
   WORKFORCE,
   WORKFORCE_JOBS,
@@ -54,6 +55,12 @@ async function main() {
       expectEqual(`인력 ${year} ${job}`, find(excel.points, "workforce", year, job)?.value, byJob[job]);
     }
   }
+  for (const [kind, byYear] of Object.entries(UNION_VOTES)) {
+    for (const [year, rate] of Object.entries(byYear)) {
+      expectEqual(`투표율 ${year} ${kind}`, find(excel.points, "union-votes", year, kind)?.value, rate);
+    }
+  }
+  expectEqual("투표율 단위", find(excel.points, "union-votes", "2026", "임단협 찬반투표")?.unit, "%");
   expectEqual("엑셀 샘플에는 전임자 명단 없음", excel.officers.length, 0);
 
   // 전임간부 명단 (사용자 파일, 기간별)

@@ -15,5 +15,5 @@ export async function askQuestion(question: string): Promise<AskResponse> {
   if (!interpretation) return simpleResponse("not_understood");
 
   // 3) 답변·숫자·차트는 서버가 올라온 데이터로 만든다
-  return buildAnswer(interpretation, await getDashboardData(), guard.legal);
+  return buildAnswer(interpretation, await getDashboardData(), guard.legal, question);
 }

@@ -18,7 +18,7 @@ export const WAGE_INCREASE: Record<string, number> = {
   "2026": 3.0,
 };
 
-/** 의료원 인력 현황 (명) — 연도 × 직종 */
+/** 노동조합 조합원 현황 (명) — 연도 × 직종 (예전 이름: 의료원 인력 현황) */
 export const WORKFORCE_JOBS = ["의사", "간호", "보건", "사무", "기타"] as const;
 export const WORKFORCE: Record<string, Record<(typeof WORKFORCE_JOBS)[number], number>> = {
   "2022": { 의사: 412, 간호: 768, 보건: 301, 사무: 254, 기타: 188 },
@@ -62,3 +62,12 @@ export const UNION_VEHICLES: { year: string; value: number | null; page: number 
   { year: "2025", value: 4, page: 2 },
   { year: "2026", value: 5, page: 2 },
 ];
+
+/**
+ * 노동조합 투표율 (%) — 2026-11-20 추가, 가짜 값. 실제 파일을 올리면 바뀐다.
+ * 임단협 찬반투표는 매년, 임원(지부장) 선거는 3년마다 있다고 가정한다.
+ */
+export const UNION_VOTES: Record<string, Record<string, number>> = {
+  "임단협 찬반투표": { "2019": 78.4, "2020": 81.2, "2021": 76.5, "2022": 83.1, "2023": 79.8, "2024": 85.6, "2025": 82.3, "2026": 84.0 },
+  "임원(지부장) 선거": { "2020": 71.5, "2023": 74.2, "2026": 69.8 },
+};

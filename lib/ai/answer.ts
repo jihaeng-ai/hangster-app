@@ -1,6 +1,6 @@
 // Design Ref: §8.4 — 답변 만들기. 숫자 계산·문장·차트는 모두 서버에서 데이터로 만든다 (PRD Must2-1, 2, 7)
 import "server-only";
-import { periodInRange, type ChartType } from "@/lib/metrics/definitions";
+import { getMetric, periodInRange, type ChartType } from "@/lib/metrics/definitions";
 import { describeChange } from "@/lib/metrics/describe";
 import { directionParticle, formatPeriod, formatValue, formatWithUnit, topicParticle } from "@/lib/metrics/format";
 import type { ChartRow, DashboardData, MetricSeries } from "@/lib/metrics/series";
@@ -53,8 +53,11 @@ const GENERIC_CATEGORY = /^(직종|직종별|항목|항목별|구분|부서|부�
 
 type Point = { period: string; value: number | null };
 
-export function buildAnswer(interp: Interpretation, data: DashboardData, legalFlag: boolean): AskResponse {
-  const result = buildAnswerInner(interp, data, legalFlag);
+/**
+ * question: 원래 질문 문장 — 서버 안에서 "임단협/선거" 같은 갈래 낱말을 찾는 데만 쓴다 (외부로 보내지 않음)
+ */
+export function buildAnswer(interp: Interpretation, data: DashboardData, legalFlag: boolean, question = ""): AskResponse {
+  const result = buildAnswerInner(interp, data, legalFlag, question);
   // 법률 질문이면 데이터가 없을 때도 "법률 판단은 하지 않는다" 안내를 붙인다 (PRD Must2-5)
   const legal = legalFlag || interp.intent === "legal";
   if (legal && result.status === "no_data" && !result.sentences.includes(MESSAGES.legal_notice)) {
@@ -63,7 +66,7 @@ export function buildAnswer(interp: Interpretation, data: DashboardData, legalFl
   return result;
 }
 
-function buildAnswerInner(interp: Interpretation, data: DashboardData, legalFlag: boolean): AskResponse {
+function buildAnswerInner(interp: Interpretation, data: DashboardData, legalFlag: boolean, question = ""): AskResponse {
   if (interp.intent === "person") return simpleResponse("refused_person");
   if (interp.intent === "officers") return simpleResponse("refused_officers");
   const legal = legalFlag || interp.intent === "legal";
@@ -79,6 +82,7 @@ function buildAnswerInner(interp: Interpretation, data: DashboardData, legalFlag
 
   const series = data.series.find((s) => s.metric.id === interp.metricId);
   if (!series || series.totals.length === 0) return simpleResponse("no_data");
+  if (series.sections) return sectionAnswer(series, interp, data, legalFlag, question);
 
   // 카테고리(직종 등) 맞추기 — 데이터에 없는 카테고리를 물으면 "해당 데이터가 없습니다"
   const rawCategory = interp.category && !GENERIC_CATEGORY.test(normalize(interp.category)) ? interp.category : null;
@@ -154,6 +158,75 @@ function buildAnswerInner(interp: Interpretation, data: DashboardData, legalFlag
       pdf: series.hasPdf,
     },
     chart,
+    link: `/metrics/${series.metric.id}`,
+  };
+}
+
+/**
+ * 갈래가 있는 지표(투표율, 2026-11-20): 질문·AI 해석에서 갈래를 찾아
+ *  - 하나를 찾으면 그 갈래만 하나의 지표처럼 답한다 (임단협 찬반투표 / 임원 선거 값을 섞지 않음)
+ *  - 못 찾거나 둘 다 나오면 갈래마다 최근 값을 한 문장씩 알려준다
+ */
+function sectionAnswer(series: MetricSeries, interp: Interpretation, data: DashboardData, legalFlag: boolean, question: string): AskResponse {
+  const defs = getMetric(series.metric.id).sections ?? [];
+  const text = normalize(`${interp.category ?? ""} ${question}`);
+  const hits = (series.sections ?? []).filter((sec) => {
+    const def = defs.find((d) => d.name === sec.name);
+    return [sec.name, ...(def?.aliases ?? [])].some((w) => text.includes(normalize(w)));
+  });
+
+  if (hits.length === 1) {
+    const sec = hits[0];
+    if (sec.totals.length === 0) return simpleResponse("no_data");
+    const only: MetricSeries = {
+      ...series,
+      metric: { ...series.metric, label: `${sec.name} 투표율` },
+      totals: sec.totals,
+      rows: sec.rows,
+      categories: [],
+      latest: sec.latest,
+      sources: sec.sources,
+      hasPdf: sec.sources.some((s) => s.kind === "pdf"),
+      description: sec.description,
+      sections: undefined,
+    };
+    const rest = { ...data, series: data.series.map((s) => (s === series ? only : s)) };
+    return buildAnswerInner({ ...interp, category: null }, rest, legalFlag);
+  }
+
+  // 갈래를 콕 집지 않은 질문: 갈래마다 (기간 안의) 최근 값
+  const { unit } = series.metric;
+  const items = (series.sections ?? []).map((sec) => {
+    const inRange = sec.totals.filter((p) => periodInRange(p.period, interp.periodFrom, interp.periodTo) && p.value !== null);
+    return { name: sec.name, point: inRange.at(-1) ?? null };
+  });
+  const found = items.filter((i): i is { name: string; point: { period: string; value: number } } => i.point !== null);
+  if (found.length === 0) return simpleResponse("no_data");
+  let sentences = items.map((i) =>
+    i.point && i.point.value !== null
+      ? `${formatPeriod(i.point.period)} ${i.name} 투표율은 ${formatWithUnit(i.point.value, unit)}입니다.`
+      : `${i.name} 투표율은 해당 데이터가 없습니다.`,
+  );
+  if (interp.aggregation && interp.aggregation !== "latest") {
+    sentences.push("임단협 찬반투표나 임원(지부장) 선거 중 하나를 골라 물어보시면 추이도 알려드립니다.");
+  }
+  if (legalFlag || interp.intent === "legal") sentences = [...sentences.slice(0, 2), MESSAGES.legal_notice];
+  return {
+    status: "answered",
+    sentences: sentences.slice(0, 3),
+    basis: {
+      metricLabel: series.metric.label,
+      baseDates: [...new Set(series.sources.map((s) => s.baseDate))],
+      fileNames: [...new Set(series.sources.map((s) => s.fileName))],
+      pdf: series.hasPdf,
+    },
+    chart: {
+      chart: "bar",
+      unit,
+      rows: found.map((i) => ({ period: `${i.name}(${formatPeriod(i.point.period)})`, value: i.point.value })),
+      categories: [],
+      label: `${series.metric.label} (갈래별 최근 값)`,
+    },
     link: `/metrics/${series.metric.id}`,
   };
 }

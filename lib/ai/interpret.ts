@@ -34,7 +34,8 @@ ${METRICS.map((m) => `- ${m.id}: ${m.label}, ${m.unit}, ${m.periodUnit === "year
 - category: 직종·항목·부서 이름이 나오면 그 낱말 그대로(예: "간호"), 없으면 null.
 - aggregation: 최신 값="latest", 추이·변화="trend", 가장 높은 때(시점)="max", 가장 낮은 때(시점)="min", 전년·전월과 비교="compare", 직종·항목별 나눠 보기 또는 "가장 많은/적은 직종·항목은?"="breakdown". 모르면 "latest".
 - recentCount: "최근 5년", "지난 3개월"처럼 최근 몇 기간인지 나오면 그 숫자, 없으면 null.
-- "최근 N년"이면 aggregation은 "trend"로 하고 periodFrom/periodTo는 null로 둔다.`;
+- "최근 N년"이면 aggregation은 "trend"로 하고 periodFrom/periodTo는 null로 둔다.
+- 투표율(찬반투표·임단협·선거·지부장 선거 투표율)을 물으면 metricId는 "union-votes". 임단협·단체협약 찬반투표면 category="임단협 찬반투표", 임원·지부장 선거면 category="임원(지부장) 선거", 구분이 없으면 null.`;
 
 let client: OpenAI | null = null;
 function getClient(): OpenAI {
