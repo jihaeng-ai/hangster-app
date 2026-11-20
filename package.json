@@ -13,7 +13,8 @@
     "check:guard": "tsx scripts/check-guard.ts",
     "check:success": "tsx --env-file=.env scripts/check-success.ts",
     "check:gaps": "tsx --conditions=react-server scripts/check-gaps.ts",
-    "check:ratelimit": "tsx --conditions=react-server scripts/check-ratelimit.ts"
+    "check:ratelimit": "tsx --conditions=react-server scripts/check-ratelimit.ts",
+    "check:base64": "tsx --conditions=react-server --env-file=.env scripts/check-base64.ts"
   },
   "dependencies": {
     "exceljs": "^4.4.0",

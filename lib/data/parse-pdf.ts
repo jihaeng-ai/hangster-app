@@ -1,5 +1,7 @@
 // Design Ref: §8.3 — 서버 안에서만 PDF 표의 숫자를 읽는다 (PRD Must1-10)
 import "server-only";
+// pdf.js가 넣는 잘못된 base64 대용품보다 먼저 올바른 것을 넣는다 (lib/polyfills/base64.ts 설명 참고)
+import "@/lib/polyfills/base64";
 import { extractTextItems, getDocumentProxy } from "unpdf";
 import { findMetricByPdfTitle, periodMatchesUnit, type MetricDefinition } from "@/lib/metrics/definitions";
 import { toDateString, toNumber, toPeriod } from "./cells";

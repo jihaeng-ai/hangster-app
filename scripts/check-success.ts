@@ -17,7 +17,7 @@ const QUESTIONS: { q: string; expect: string; page: string; pageText: string }[]
   { q: "조합원은 작년보다 얼마나 늘었어?", expect: "32명", page: "/metrics/workforce", pageText: "32명(1.6%) 증가" },
   { q: "올해 노조 전임자는 몇 명이야?", expect: "9명", page: "/", pageText: "9명" }, // 2024년 마지막 기간(02.16~02.29) 유급 6 + 무급 3
   { q: "노조 차량 지원은 작년보다 늘었어?", expect: "1대(25.0%) 증가", page: "/metrics/union-vehicles", pageText: "1대(25.0%) 증가" },
-  { q: "2024년 노조 차량 지원 대수는?", expect: "데이터 없음", page: "/metrics/union-vehicles", pageText: "데이터 없음" },
+  { q: "2024년 노조 차량 지원 대수는?", expect: "데이터 없음", page: "/metrics/union-vehicles", pageText: "2024년 값은 원본에서 확인되지 않아" }, // 버스 화면은 최근 연도를 먼저 보여주므로 변화 설명 문장으로 확인 (2026-11-20)
   { q: "2023년 간호 조합원은 몇 명이야?", expect: "781명", page: "/metrics/workforce", pageText: "781명" },
   { q: "최근 5년 임금 인상률 추이는?", expect: "2022년~2026년", page: "/metrics/wage-increase", pageText: "2022년" },
 ];

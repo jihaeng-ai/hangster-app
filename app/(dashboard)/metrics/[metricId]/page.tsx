@@ -7,6 +7,7 @@ import { DataTable } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { OfficerOrgChart } from "@/components/OfficerOrgChart";
 import { SourceNote } from "@/components/SourceNote";
+import { VehicleBusBoard } from "@/components/VehicleBusBoard";
 import { VoteSections } from "@/components/VoteSections";
 import { requireSession } from "@/lib/auth/session";
 import type { MetricId } from "@/lib/data/types";
@@ -56,6 +57,17 @@ async function MetricDetail({ params }: { params: Promise<{ metricId: string }> 
             <SourceNote sources={series.sources} />
           </div>
         </div>
+      ) : metric.id === "union-vehicles" && (hasData || data.vehicles.length > 0) ? (
+        // 차량 지원: 차트 대신 연도 → 버스 픽토그램 + 지원일시·장소 (2026-11-20 사용자 요청)
+        <>
+          <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <VehicleBusBoard counts={series.totals} trips={data.vehicles} unit={series.metric.unit} />
+            <div className="mt-4">
+              <SourceNote sources={[...series.sources, ...data.vehicleSources]} />
+            </div>
+          </div>
+          <ChangeSummary sentences={series.description} />
+        </>
       ) : hasData && series.sections ? (
         // 투표율: 네모 칸 2개(임단협 찬반투표 / 임원(지부장) 선거) → 칸을 누르면 연도 버튼 → 그해 투표율 (2026-11-20 사용자 요청)
         <VoteSections sections={series.sections} unit={series.metric.unit} chart={series.metric.chart} />

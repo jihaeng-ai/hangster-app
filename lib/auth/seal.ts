@@ -1,5 +1,7 @@
 // 세션 쿠키 암호화·복호화 — proxy.ts와 서버 코드가 함께 쓴다
 // (proxy에서도 불러야 하므로 next/headers·server-only를 쓰지 않는다. 브라우저 코드에서 불러오지 말 것)
+// PDF를 읽은 뒤에도 쿠키를 제대로 풀도록 base64 함수를 보정한다 (lib/polyfills/base64.ts 설명 참고)
+import "@/lib/polyfills/base64";
 import { sealData, unsealData } from "iron-session";
 
 export type Role = "manager" | "executive";

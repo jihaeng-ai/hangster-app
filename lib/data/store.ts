@@ -52,31 +52,31 @@ export async function parseFile(fileName: string, data: Uint8Array, id: string):
 }
 
 /** 읽은 결과에 들어 있는 "지표|기간" 목록 — 같은 기간 판정에 쓴다 */
-function periodKeys(parsed: Pick<Store, "points" | "officers">): Set<string> {
+/** 차량 지원 내역은 대수(PDF)와 다른 자료라 따로 센다 — 내역 파일이 대수 값을 지우지 않게 */
+const VEHICLE_LOG_KEY = "union-vehicles-log";
+
+function periodKeys(parsed: Pick<Store, "points" | "officers" | "vehicles">): Set<string> {
   const keys = new Set(parsed.points.map((p) => `${p.metricId}|${p.period}`));
   for (const o of parsed.officers) keys.add(`union-officers|${o.year}`);
+  for (const v of parsed.vehicles ?? []) keys.add(`${VEHICLE_LOG_KEY}|${v.year}`);
   return keys;
 }
 
 function toStoredFile(id: string, fileName: string, parsed: ParsedFile, storedPath: string): StoredFile {
-  const metricIds = new Set(parsed.points.map((p) => p.metricId));
-  if (parsed.officers.length > 0) metricIds.add("union-officers");
-  const periods = new Set([...parsed.points.map((p) => p.period), ...parsed.officers.map((o) => o.year)]);
   return {
     id,
     fileName,
     kind: parsed.kind,
     uploadedAt: new Date().toISOString(),
     baseDate: parsed.baseDate,
-    metricIds: [...metricIds],
-    periods: [...periods].sort(),
+    ...summarizeKeys(parsed),
     storedPath,
   };
 }
 
 /** data/samples/의 파일로 처음 저장소를 만든다 */
 async function buildFromSamples(): Promise<Store> {
-  const store: Store = { files: [], points: [], officers: [] };
+  const store: Store = { files: [], points: [], officers: [], vehicles: [] };
   if (!existsSync(samplesDir())) return store;
   const names = (await readdir(samplesDir())).filter((n) => /\.(xlsx|pdf)$/i.test(n)).sort();
   for (const [i, name] of names.entries()) {
@@ -85,6 +85,7 @@ async function buildFromSamples(): Promise<Store> {
     store.files.push(toStoredFile(id, name, parsed, `samples/${name}`));
     store.points.push(...parsed.points);
     store.officers.push(...parsed.officers);
+    store.vehicles!.push(...(parsed.vehicles ?? []));
   }
   return store;
 }
@@ -133,6 +134,7 @@ function withoutFile(store: Store, fileId: string): Store {
     files: store.files.filter((f) => f.id !== fileId),
     points: store.points.filter((p) => p.source.fileId !== fileId),
     officers: store.officers.filter((o) => o.source.fileId !== fileId),
+    vehicles: (store.vehicles ?? []).filter((v) => v.source.fileId !== fileId),
   };
 }
 
@@ -142,14 +144,17 @@ function withoutKeys(store: Store, fileId: string, keys: Set<string>): Store {
     files: store.files,
     points: store.points.filter((p) => p.source.fileId !== fileId || !keys.has(`${p.metricId}|${p.period}`)),
     officers: store.officers.filter((o) => o.source.fileId !== fileId || !keys.has(`union-officers|${o.year}`)),
+    vehicles: (store.vehicles ?? []).filter((v) => v.source.fileId !== fileId || !keys.has(`${VEHICLE_LOG_KEY}|${v.year}`)),
   };
 }
 
 /** 남은 값으로 파일 기록의 지표·기간 목록을 다시 계산한다 */
-function summarizeKeys(rest: Pick<Store, "points" | "officers">): Pick<StoredFile, "metricIds" | "periods"> {
+function summarizeKeys(rest: Pick<Store, "points" | "officers" | "vehicles">): Pick<StoredFile, "metricIds" | "periods"> {
+  const vehicles = rest.vehicles ?? [];
   const metricIds = new Set(rest.points.map((p) => p.metricId));
   if (rest.officers.length > 0) metricIds.add("union-officers");
-  const periods = new Set([...rest.points.map((p) => p.period), ...rest.officers.map((o) => o.year)]);
+  if (vehicles.length > 0) metricIds.add("union-vehicles");
+  const periods = new Set([...rest.points.map((p) => p.period), ...rest.officers.map((o) => o.year), ...vehicles.map((v) => v.year)]);
   return { metricIds: [...metricIds], periods: [...periods].sort() };
 }
 
@@ -186,7 +191,7 @@ export function addFile(fileName: string, data: Uint8Array, options: { replace?:
     for (const old of conflicts) {
       store = withoutKeys(store, old.id, newKeys);
       const remaining = withoutOthers(store, old.id);
-      if (remaining.points.length === 0 && remaining.officers.length === 0) {
+      if (remaining.points.length === 0 && remaining.officers.length === 0 && (remaining.vehicles ?? []).length === 0) {
         store = withoutFile(store, old.id);
         await removeOriginal(old);
       } else {
@@ -203,11 +208,12 @@ export function addFile(fileName: string, data: Uint8Array, options: { replace?:
     store.files.push(stored);
     store.points.push(...parsed.points);
     store.officers.push(...parsed.officers);
+    store.vehicles = [...(store.vehicles ?? []), ...(parsed.vehicles ?? [])];
     await saveStore(store);
 
     return {
       file: stored,
-      pointCount: parsed.points.length + parsed.officers.length,
+      pointCount: parsed.points.length + parsed.officers.length + (parsed.vehicles ?? []).length,
       missingCount: parsed.points.filter((p) => p.value === null).length,
       replaced: conflicts,
     };
@@ -215,10 +221,11 @@ export function addFile(fileName: string, data: Uint8Array, options: { replace?:
 }
 
 /** 한 파일의 값만 남긴 저장소 (같은 기간 판정용) */
-function withoutOthers(store: Store, fileId: string): Pick<Store, "points" | "officers"> {
+function withoutOthers(store: Store, fileId: string): Pick<Store, "points" | "officers" | "vehicles"> {
   return {
     points: store.points.filter((p) => p.source.fileId === fileId),
     officers: store.officers.filter((o) => o.source.fileId === fileId),
+    vehicles: (store.vehicles ?? []).filter((v) => v.source.fileId === fileId),
   };
 }
 

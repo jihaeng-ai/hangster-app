@@ -11,6 +11,8 @@ import {
   SAMPLE_BASE_DATE,
   UNION_VEHICLES,
   UNION_VOTES,
+  VEHICLE_LOG,
+  VEHICLE_LOG_FILE_SHEET,
   WAGE_INCREASE,
   WORKFORCE,
   WORKFORCE_JOBS,
@@ -48,6 +50,11 @@ async function makeExcel() {
   for (const [kind, byYear] of Object.entries(UNION_VOTES)) {
     for (const [year, rate] of Object.entries(byYear)) votes.addRow([year, kind, rate]);
   }
+
+  // 차량 지원 내역: 한 줄 = 버스 한 대 (지원일시·장소, 2026-11-20). 일시는 글자로 넣어 날짜 칸 시간대 문제를 피한다
+  const vlog = wb.addWorksheet(VEHICLE_LOG_FILE_SHEET);
+  vlog.addRow(["지원일시", "장소"]);
+  for (const v of VEHICLE_LOG) vlog.addRow([v.when, v.place]);
 
   // 전임간부 명단은 이 파일에 넣지 않는다 — data/samples/연도별 전임간부 현황.xlsx(사용자 제공, 기간별 명단)를 쓴다 (2026-11-19)
 

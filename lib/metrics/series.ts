@@ -2,7 +2,7 @@
 import "server-only";
 import { cacheTag } from "next/cache";
 import { loadStore } from "@/lib/data/store";
-import type { DataPoint, MetricId, SourceRef, Store, UnionOfficer } from "@/lib/data/types";
+import type { DataPoint, MetricId, SourceRef, Store, UnionOfficer, VehicleSupport } from "@/lib/data/types";
 import { describeChange } from "./describe";
 import { METRICS, type MetricDefinition } from "./definitions";
 
@@ -88,10 +88,16 @@ export function officerCountByYear(rows: OfficerRow[]): { period: string; value:
   });
 }
 
+/** 화면으로 보내는 차량 지원 한 건 (출처 대신 출처 요약을 따로 보낸다) */
+export type VehicleRow = Omit<VehicleSupport, "source">;
+
 export interface DashboardData {
   series: MetricSeries[];
   officers: OfficerRow[];
   officerSources: SourceSummary[];
+  /** 차량 지원 내역 (버스 픽토그램 화면용, 2026-11-20) */
+  vehicles: VehicleRow[];
+  vehicleSources: SourceSummary[];
   isEmpty: boolean;
 }
 
@@ -225,7 +231,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       .map(toOfficerRow)
       .sort((a, b) => a.periodStart.localeCompare(b.periodStart) || (a.order ?? 999) - (b.order ?? 999)),
     officerSources: summarizeSources(store.officers.map((o) => o.source)),
-    isEmpty: store.points.length === 0 && store.officers.length === 0,
+    vehicles: (store.vehicles ?? [])
+      .map(({ year, date, time, place }) => ({ year, date, time, place }))
+      .sort((a, b) => `${a.date} ${a.time ?? ""}`.localeCompare(`${b.date} ${b.time ?? ""}`)),
+    vehicleSources: summarizeSources((store.vehicles ?? []).map((v) => v.source)),
+    isEmpty: store.points.length === 0 && store.officers.length === 0 && (store.vehicles ?? []).length === 0,
   };
 }
 

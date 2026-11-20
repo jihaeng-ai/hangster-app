@@ -10,6 +10,7 @@ import {
   type ParsedFile,
   type SourceRef,
   type UnionOfficer,
+  type VehicleSupport,
 } from "./types";
 
 /** 헤더 이름으로 열을 찾을 때 쓰는 이름들 */
@@ -17,6 +18,23 @@ const PERIOD_HEADERS = ["연도", "년도", "기간", "연월", "월"];
 const CATEGORY_HEADERS = ["직종", "항목", "구분", "부서"];
 const NAME_HEADERS = ["이름", "성명"];
 const DEPT_HEADERS = ["부서", "소속"];
+/** 차량 지원 내역 시트 (2026-11-20): 시트 이름과 열 이름 */
+const VEHICLE_LOG_SHEETS = ["차량지원내역", "차량지원일지", "노조차량지원내역"];
+const WHEN_HEADERS = ["지원일시", "일시", "지원일", "날짜", "일자"];
+const PLACE_HEADERS = ["장소", "지원장소", "행선지", "목적지"];
+
+/** 일시 셀 → 날짜·시각. 날짜 셀이면 그대로, 글자면 "2026-03-15 09:00", "2026.3.15. 09:00" 같은 모양을 읽는다 */
+function readWhen(v: unknown): { date: string; time: string | null } | null {
+  const pad = (n: string | number) => String(n).padStart(2, "0");
+  if (v instanceof Date) {
+    const iso = v.toISOString(); // exceljs 날짜는 화면에 보이는 시각을 UTC로 담는다
+    const time = iso.slice(11, 16);
+    return { date: iso.slice(0, 10), time: time === "00:00" ? null : time };
+  }
+  const m = String(v ?? "").match(/(\d{4})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})\s*[.일]?\s*(?:\([^)]*\))?\s*(?:(\d{1,2})\s*:\s*(\d{2}))?/);
+  if (!m) return null;
+  return { date: `${m[1]}-${pad(m[2])}-${pad(m[3])}`, time: m[4] ? `${pad(m[4])}:${m[5]}` : null };
+}
 
 /** 셀 값 → 글자 (수식이면 계산 결과, 서식 있는 글자면 이어 붙임) */
 function cellValue(cell: ExcelJS.Cell): unknown {
@@ -93,9 +111,33 @@ export async function parseExcel(data: Uint8Array, file: { id: string; name: str
 
   const points: DataPoint[] = [];
   const officers: UnionOfficer[] = roster.map((e) => ({ ...e, source }));
+  const vehicles: VehicleSupport[] = [];
 
   for (const ws of wb.worksheets) {
     if (rosterSheets.has(ws.name)) continue; // 명단 시트는 위에서 읽었다
+
+    // 차량 지원 내역 시트: 지원일시 · 장소 (한 줄 = 버스 한 대)
+    if (VEHICLE_LOG_SHEETS.includes(normalizeLabel(ws.name))) {
+      const head: string[] = [];
+      for (let c = 1; c <= ws.columnCount; c++) head.push(cellText(ws.getRow(1).getCell(c)));
+      const whenCol = findColumn(head, WHEN_HEADERS);
+      const placeCol = findColumn(head, PLACE_HEADERS);
+      if (whenCol < 0 || placeCol < 0) {
+        throw new UnreadableFileError(`'${ws.name}' 시트에서 '지원일시'와 '장소' 열을 찾을 수 없습니다. 1행 헤더를 확인해 주세요.`);
+      }
+      ws.eachRow((row, rowNo) => {
+        if (rowNo === 1) return;
+        const rawWhen = cellValue(row.getCell(whenCol + 1));
+        const place = cellText(row.getCell(placeCol + 1));
+        if ((rawWhen === null || rawWhen === undefined || rawWhen === "") && !place) return; // 빈 줄
+        const when = readWhen(rawWhen);
+        if (!when) {
+          throw new UnreadableFileError(`'${ws.name}' 시트 ${rowNo}행의 지원일시를 읽을 수 없습니다. 2026-03-15 09:00처럼 적어 주세요.`);
+        }
+        vehicles.push({ year: when.date.slice(0, 4), date: when.date, time: when.time, place: place || "데이터 없음", source });
+      });
+      continue;
+    }
     const metric = findMetricBySheetName(ws.name);
     if (!metric) continue; // 알아보지 못한 시트는 건너뛴다
 
@@ -153,11 +195,11 @@ export async function parseExcel(data: Uint8Array, file: { id: string; name: str
     });
   }
 
-  if (points.length === 0 && officers.length === 0) {
+  if (points.length === 0 && officers.length === 0 && vehicles.length === 0) {
     throw new UnreadableFileError(
       "알아볼 수 있는 지표 시트가 없습니다. 시트 이름(예: 임금인상률, 인력현황, 전임자)과 1행 헤더를 확인해 주세요.",
     );
   }
 
-  return { kind: "excel", baseDate, points, officers };
+  return { kind: "excel", baseDate, points, officers, vehicles };
 }

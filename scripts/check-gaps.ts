@@ -53,7 +53,7 @@ async function main() {
   }
 
   const wage = buildNumericSeries(getMetric("wage-increase"), [pt("wage-increase", "2025", null, 3.3, "%"), pt("wage-increase", "2026", null, 3.0, "%")]);
-  const data: DashboardData = { series: [{ ...wage, description: [] }], officers: [], officerSources: [], isEmpty: false };
+  const data: DashboardData = { series: [{ ...wage, description: [] }], officers: [], officerSources: [], vehicles: [], vehicleSources: [], isEmpty: false };
   const interp: Interpretation = { intent: "metric", metricId: "wage-increase", periodFrom: "2026", periodTo: "2026", category: null, recentCount: null, aggregation: "latest" };
   const ans = buildAnswer(interp, data, false);
   check("AI 답변: 2026년 임금 인상률", ans.sentences[0]?.includes("3.0%") ?? false, ans.sentences[0]);
@@ -79,7 +79,7 @@ async function main() {
   const yr = votes.sections?.[1].byPeriod ?? [];
   check("연도 버튼: 2023년 선거는 비교 대상 없음", yr[0]?.sentence === "비교할 이전 데이터가 없습니다.", yr[0]?.sentence);
   check("연도 버튼: 2026년 선거는 2023년 대비", yr[1]?.value === 69.8 && yr[1].sentence.includes("2023년 대비"), yr[1]?.sentence);
-  const vData: DashboardData = { series: [votes], officers: [], officerSources: [], isEmpty: false };
+  const vData: DashboardData = { series: [votes], officers: [], officerSources: [], vehicles: [], vehicleSources: [], isEmpty: false };
   const vInterp: Interpretation = { intent: "metric", metricId: "union-votes", periodFrom: null, periodTo: null, category: null, recentCount: null, aggregation: "latest" };
   const both = buildAnswer(vInterp, vData, false, "노조 투표율은?");
   check("구분 없이 물으면 두 갈래 모두 답", both.sentences.length === 2 && both.sentences[0].includes("84.0%") && both.sentences[1].includes("69.8%"), both.sentences.join(" / "));

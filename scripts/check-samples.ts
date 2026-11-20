@@ -13,6 +13,7 @@ import {
   ROSTER_FILE_NAME,
   UNION_VEHICLES,
   UNION_VOTES,
+  VEHICLE_LOG,
   WAGE_INCREASE,
   WORKFORCE,
   WORKFORCE_JOBS,
@@ -61,6 +62,16 @@ async function main() {
     }
   }
   expectEqual("투표율 단위", find(excel.points, "union-votes", "2026", "임단협 찬반투표")?.unit, "%");
+  const vlog = excel.vehicles ?? [];
+  expectEqual("차량 지원 내역 건수", vlog.length, VEHICLE_LOG.length);
+  for (const [i, v] of VEHICLE_LOG.entries()) {
+    expectEqual(`차량 내역 ${i + 1} 일시`, `${vlog[i]?.date} ${vlog[i]?.time}`, v.when);
+    expectEqual(`차량 내역 ${i + 1} 장소`, vlog[i]?.place, v.place);
+  }
+  // 연도별 내역 건수 = PDF 지원 대수 (샘플끼리 앞뒤가 맞는지)
+  for (const u of UNION_VEHICLES) {
+    if (u.value !== null) expectEqual(`${u.year}년 내역 건수 = 지원 대수`, vlog.filter((v) => v.year === u.year).length, u.value);
+  }
   expectEqual("엑셀 샘플에는 전임자 명단 없음", excel.officers.length, 0);
 
   // 전임간부 명단 (사용자 파일, 기간별)
