@@ -48,6 +48,17 @@ export function MembershipBoard({ periods, unit }: { periods: MembershipPeriod[]
     const last = periods.filter((p) => p.period.startsWith(y)).at(-1)!;
     return { period: `${y}년 (${Number(last.period.slice(5))}월)`, value: valueOf(last) };
   });
+  // 세로축 범위: 값 범위만 꽉 채우면 기울기가 지나치게 가팔라 보인다 (2026-11-20 사용자 요청)
+  // 위아래로 "값 범위"와 "최댓값의 10%" 중 큰 만큼 여유를 두고 100 단위로 맞춘다 (예: 2,367~2,620명 → 2,100~2,900)
+  const shown = compareRows.map((r) => r.value).filter((v): v is number => typeof v === "number");
+  const yDomain: [number, number] | "auto" = shown.length > 0
+    ? (() => {
+        const min = Math.min(...shown);
+        const max = Math.max(...shown);
+        const pad = Math.max(max - min, max * 0.1);
+        return [Math.max(0, Math.floor((min - pad) / 100) * 100), Math.ceil((max + pad) / 100) * 100];
+      })()
+    : "auto";
 
   return (
     <div className="flex flex-col gap-6">
@@ -105,7 +116,7 @@ export function MembershipBoard({ periods, unit }: { periods: MembershipPeriod[]
           ))}
         </div>
         <div className="rounded-xl border border-zinc-200 bg-[var(--viz-surface)] p-4 dark:border-zinc-800">
-          <MetricChart chart="line" unit={unit} rows={compareRows} categories={[]} label={`${target === TOTAL_LABEL ? "의료원" : target} 조합원`} yDomain="auto" />
+          <MetricChart chart="line" unit={unit} rows={compareRows} categories={[]} label={`${target === TOTAL_LABEL ? "의료원" : target} 조합원`} yDomain={yDomain} />
         </div>
         <p className="text-xs text-zinc-500">해마다 그해 마지막 달 값입니다 (괄호 안이 기준 달).</p>
       </section>

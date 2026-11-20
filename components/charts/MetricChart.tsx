@@ -30,8 +30,8 @@ interface Props {
   categories: string[];
   /** 차트 설명 (화면 읽기 프로그램용) */
   label: string;
-  /** 세로축: "zero"(0부터, 기본) / "auto"(값 범위에 맞춤 — 꺾은선에서 작은 차이를 보이게, 2026-11-20 조합원 연도별 비교) */
-  yDomain?: "zero" | "auto";
+  /** 세로축: "zero"(0부터, 기본) / "auto"(값 범위에 맞춤) / [최소, 최대](직접 지정 — 2026-11-20 조합원 연도별 비교, 기울기를 완만하게) */
+  yDomain?: "zero" | "auto" | [number, number];
 }
 
 function tooltipValue(unit: string) {
@@ -57,7 +57,8 @@ export function MetricChart({ chart, unit, rows, categories, label, yDomain = "z
         axisLine={false}
         width={56}
         unit={unit === "%" ? "%" : undefined}
-        domain={yDomain === "auto" && chart === "line" ? ["dataMin - 20", "dataMax + 20"] : undefined}
+        domain={Array.isArray(yDomain) ? yDomain : yDomain === "auto" && chart === "line" ? ["dataMin - 20", "dataMax + 20"] : undefined}
+        allowDecimals={unit === "%"}
         tickFormatter={(v: number) => v.toLocaleString("ko-KR")}
       />
     </>
