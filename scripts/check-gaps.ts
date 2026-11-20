@@ -76,6 +76,9 @@ async function main() {
   check("두 투표율을 더하지 않음 (합계 null)", votes.totals.every((t) => t.value === null));
   check("갈래 2개", votes.sections?.length === 2);
   check("선거 변화 설명은 2023년 대비", votes.sections?.[1].description[0]?.includes("2023년 대비 4.4%p") ?? false, votes.sections?.[1].description[0]);
+  const yr = votes.sections?.[1].byPeriod ?? [];
+  check("연도 버튼: 2023년 선거는 비교 대상 없음", yr[0]?.sentence === "비교할 이전 데이터가 없습니다.", yr[0]?.sentence);
+  check("연도 버튼: 2026년 선거는 2023년 대비", yr[1]?.value === 69.8 && yr[1].sentence.includes("2023년 대비"), yr[1]?.sentence);
   const vData: DashboardData = { series: [votes], officers: [], officerSources: [], isEmpty: false };
   const vInterp: Interpretation = { intent: "metric", metricId: "union-votes", periodFrom: null, periodTo: null, category: null, recentCount: null, aggregation: "latest" };
   const both = buildAnswer(vInterp, vData, false, "노조 투표율은?");

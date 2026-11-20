@@ -7,6 +7,7 @@ import { DataTable } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { OfficerOrgChart } from "@/components/OfficerOrgChart";
 import { SourceNote } from "@/components/SourceNote";
+import { VoteSections } from "@/components/VoteSections";
 import { requireSession } from "@/lib/auth/session";
 import type { MetricId } from "@/lib/data/types";
 import { METRICS } from "@/lib/metrics/definitions";
@@ -56,26 +57,8 @@ async function MetricDetail({ params }: { params: Promise<{ metricId: string }> 
           </div>
         </div>
       ) : hasData && series.sections ? (
-        // 투표율: 임단협 찬반투표 / 임원(지부장) 선거를 구역 2개로 나눠 각각 차트·출처·표·변화 설명 (2026-11-20 사용자 요청)
-        series.sections.map((sec) => (
-          <section key={sec.name} className="flex flex-col gap-3" aria-labelledby={`sec-${sec.name}`}>
-            <h2 id={`sec-${sec.name}`} className="text-lg font-semibold text-white">{sec.name}</h2>
-            {sec.totals.length > 0 ? (
-              <>
-                <div className="rounded-xl border border-zinc-200 bg-[var(--viz-surface)] p-4 dark:border-zinc-800">
-                  <MetricChart chart={series.metric.chart} unit={series.metric.unit} rows={sec.rows} categories={[]} label={`${sec.name} 투표율`} />
-                  <div className="mt-3 flex flex-col gap-3">
-                    <SourceNote sources={sec.sources} />
-                    <DataTable rows={sec.rows} categories={[]} unit={series.metric.unit} />
-                  </div>
-                </div>
-                <ChangeSummary sentences={sec.description} />
-              </>
-            ) : (
-              <p className="rounded-xl bg-white p-5 text-sm text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">이 구분은 아직 올라온 데이터가 없습니다. 담당자에게 문의하세요</p>
-            )}
-          </section>
-        ))
+        // 투표율: 네모 칸 2개(임단협 찬반투표 / 임원(지부장) 선거) → 칸을 누르면 연도 버튼 → 그해 투표율 (2026-11-20 사용자 요청)
+        <VoteSections sections={series.sections} unit={series.metric.unit} chart={series.metric.chart} />
       ) : hasData ? (
         <>
           <div className="rounded-xl border border-zinc-200 bg-[var(--viz-surface)] p-4 dark:border-zinc-800">

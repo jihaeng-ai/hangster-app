@@ -44,6 +44,8 @@ export interface SectionSeries {
   latest: { period: string; value: number | null } | null;
   sources: SourceSummary[];
   description: string[];
+  /** 연도 버튼을 눌렀을 때 보여줄 그해 값과 직전 시점 대비 문장 (문장 틀로 서버가 만든다) */
+  byPeriod: { period: string; value: number | null; sentence: string }[];
 }
 
 /** 화면(조직도)으로 보내는 전임간부 한 명 */
@@ -190,6 +192,11 @@ export function buildSectionSeries(metric: MetricDefinition, points: DataPoint[]
       latest: totals.at(-1) ?? null,
       sources: summarizeSources(pts.map((p) => p.source)),
       description: describeChange(`${sec.name} 투표율`, metric.unit, metric.periodUnit, totals),
+      byPeriod: totals.map((t, i) => ({
+        period: t.period,
+        value: t.value,
+        sentence: describeChange(`${sec.name} 투표율`, metric.unit, metric.periodUnit, totals.slice(0, i + 1))[0] ?? "",
+      })),
     };
   });
 }

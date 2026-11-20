@@ -1,11 +1,12 @@
 // 첫 화면 숫자 카드 — 누르면 지표 상세 화면으로 (버튼 1번, PRD Must1-3)
-// 카드 아래에는 기준일과 PDF 쪽 번호만 보여준다 — 출처 파일 이름은 빼기로 함 (2026-11-20 사용자 요청, 상세 화면에는 남아 있음)
+// 카드 아래에는 기준일과 PDF 쪽 번호만 보여준다 — 출처 파일 이름과 "0000년 기준" 줄은 빼기로 함 (2026-11-20 사용자 요청, 상세 화면에는 남아 있음)
 import Link from "next/link";
 import { formatPeriod, formatWithUnit } from "@/lib/metrics/format";
 import type { MetricSeries } from "@/lib/metrics/series";
 
 export function MetricCard({ series }: { series: MetricSeries }) {
   const { metric, latest, sources, sections } = series;
+  // 값이 어느 해 것인지는 글자로 따로 쓰지 않고, 마우스를 올리면 보이게만 둔다
   const pdfPages = [...new Set(sources.filter((s) => s.kind === "pdf").flatMap((s) => s.pages))].sort((a, b) => a - b);
   const baseDates = [...new Set(sources.map((s) => s.baseDate))];
 
@@ -28,19 +29,15 @@ export function MetricCard({ series }: { series: MetricSeries }) {
         <span className="flex flex-col gap-1.5">
           {sections.map((s) => (
             <span key={s.name} className="flex items-baseline justify-between gap-3">
-              <span className="text-xs text-zinc-500">
-                {s.name}
-                {s.latest && <> · {formatPeriod(s.latest.period)}</>}
-              </span>
-              <span className="text-xl font-semibold tabular-nums">{s.latest ? formatWithUnit(s.latest.value, metric.unit) : "데이터 없음"}</span>
+              <span className="text-xs text-zinc-500">{s.name}</span>
+              <span className="text-xl font-semibold tabular-nums" title={s.latest ? formatPeriod(s.latest.period) : undefined}>{s.latest ? formatWithUnit(s.latest.value, metric.unit) : "데이터 없음"}</span>
             </span>
           ))}
         </span>
       ) : (
-        <>
-          <span className="text-3xl font-semibold tabular-nums">{latest ? formatWithUnit(latest.value, metric.unit) : "데이터 없음"}</span>
-          {latest && <span className="text-xs text-zinc-500">{formatPeriod(latest.period)} 기준</span>}
-        </>
+        <span className="text-3xl font-semibold tabular-nums" title={latest ? formatPeriod(latest.period) : undefined}>
+          {latest ? formatWithUnit(latest.value, metric.unit) : "데이터 없음"}
+        </span>
       )}
       {sources.length > 0 && (
         <span className="text-xs text-zinc-400 dark:text-zinc-500">
