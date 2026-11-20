@@ -1,7 +1,7 @@
 "use client";
 // 노동조합 조합원 현황 (2026-11-20 사용자 요청, 자료: 연도별 조합원 현황.xlsx)
 // 1) 기간별: 연도 버튼 → 월 버튼 → 의료원(서울+구리) 아래에 서울병원 · 구리병원 (의료원 산하 두 병원)
-// 2) 연도별 비교 차트: 해마다 막대 하나(그해 마지막 달 값) (의료원 / 서울병원 / 구리병원 골라 보기)
+// 2) 연도별 비교 차트: 꺾은선, 해마다 점 하나(그해 마지막 달 값) (2026-11-20 사용자 요청으로 막대 → 꺾은선) (의료원 / 서울병원 / 구리병원 골라 보기)
 // 숫자와 문장은 서버가 원본 값으로 만든 것을 그대로 보여준다.
 import { useState } from "react";
 import { formatPeriod, formatWithUnit } from "@/lib/metrics/format";
@@ -105,7 +105,7 @@ export function MembershipBoard({ periods, unit }: { periods: MembershipPeriod[]
           ))}
         </div>
         <div className="rounded-xl border border-zinc-200 bg-[var(--viz-surface)] p-4 dark:border-zinc-800">
-          <MetricChart chart="bar" unit={unit} rows={compareRows} categories={[]} label={`${target === TOTAL_LABEL ? "의료원" : target} 조합원`} />
+          <MetricChart chart="line" unit={unit} rows={compareRows} categories={[]} label={`${target === TOTAL_LABEL ? "의료원" : target} 조합원`} yDomain="auto" />
         </div>
         <p className="text-xs text-zinc-500">해마다 그해 마지막 달 값입니다 (괄호 안이 기준 달).</p>
       </section>
