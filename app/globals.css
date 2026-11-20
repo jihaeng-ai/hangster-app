@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* 네이비 — 사용자가 지정한 참고 앱(로그인 화면 배경)과 같은 색 #162556 (Tailwind blue-950)
+   (2026-11-19 사용자 요청). bg-navy, text-navy 등으로 쓴다. 색을 바꿀 때는 여기만 고친다 */
+@theme {
+  --color-navy: #162556; /* 기본 (로그인 배경·헤더·버튼·제목) */
+  --color-navy-dark: #0f1a3d; /* 마우스를 올렸을 때 */
+  --color-navy-deep: #162556; /* 로그인 배경 (참고 앱처럼 한 가지 색) */
+  --color-navy-mist: #a9c3e0; /* 네이비 위의 옅은 글씨, 어두운 화면의 강조 글씨 */
+  --color-navy-soft: #edf1f7; /* 대시보드 바탕 */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* 한글이 잘 보이도록 시스템 한글 글꼴을 우선 사용 */
+  --font-sans: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+}
+
+/* 차트 색 (dataviz 기본 팔레트, 순서 고정 — 색약 구분 검증된 순서) */
+:root {
+  --viz-surface: #fcfcfb;
+  --viz-text: #52514e;
+  --viz-grid: #e4e3df;
+  --series-1: #2a78d6; /* 파랑 */
+  --series-2: #eb6834; /* 주황 */
+  --series-3: #1baf7a; /* 청록 */
+  --series-4: #eda100; /* 노랑 */
+  --series-5: #e87ba4; /* 분홍 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --viz-surface: #1a1a19;
+    --viz-text: #c3c2b7;
+    --viz-grid: #3a3a37;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}

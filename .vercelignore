@@ -1,0 +1,14 @@
+# Vercel 배포 때 올리지 않을 파일 (보안 점검 SEC-01)
+# 비밀값 파일 — Vercel 환경변수는 관리 화면에서 따로 넣는다
+.env*
+# 로컬에서 올린 파일과 읽은 결과 (배포본은 data/samples만 쓴다)
+/data/store.json
+/data/store.json.*.tmp
+/data/uploads/
+# 삭제 대기 파일, 로컬 실행기
+/trash-can/
+/start-dashboard.cmd
+/scripts/launcher/
+# 개발 도구 기록
+/.bkit/
+/.claude/

@@ -1,0 +1,64 @@
+// 실습용 가짜(샘플) 데이터 — 실제 병원 데이터가 아니다.
+// make-samples.ts가 이 값으로 엑셀·PDF를 만들고, check-samples.ts가 읽은 결과와 이 값을 대조한다 (PLAN S1).
+
+export const SAMPLE_BASE_DATE = "2026-10-31";
+
+export const EXCEL_FILE_NAME = "노무현황_샘플.xlsx";
+export const PDF_FILE_NAME = "노조차량지원_샘플.pdf";
+
+/** 연도별 임금 인상률 (%) */
+export const WAGE_INCREASE: Record<string, number> = {
+  "2019": 3.1,
+  "2020": 1.8,
+  "2021": 2.4,
+  "2022": 4.0,
+  "2023": 3.5,
+  "2024": 2.9,
+  "2025": 3.3,
+  "2026": 3.0,
+};
+
+/** 의료원 인력 현황 (명) — 연도 × 직종 */
+export const WORKFORCE_JOBS = ["의사", "간호", "보건", "사무", "기타"] as const;
+export const WORKFORCE: Record<string, Record<(typeof WORKFORCE_JOBS)[number], number>> = {
+  "2022": { 의사: 412, 간호: 768, 보건: 301, 사무: 254, 기타: 188 },
+  "2023": { 의사: 425, 간호: 781, 보건: 309, 사무: 249, 기타: 192 },
+  "2024": { 의사: 431, 간호: 795, 보건: 312, 사무: 251, 기타: 185 },
+  "2025": { 의사: 428, 간호: 806, 보건: 320, 사무: 247, 기타: 190 },
+  "2026": { 의사: 436, 간호: 812, 보건: 327, 사무: 252, 기타: 196 },
+};
+
+/** 전임간부 명단 파일 (사용자 제공, 2026-11-19) — 기간별 유급·무급 명단. check-samples가 아래 값과 대조한다 */
+export const ROSTER_FILE_NAME = "연도별 전임간부 현황.xlsx";
+export const ROSTER_EXPECT = {
+  total: 128, // 전체 행 수 (18개 기간)
+  periods: 18,
+  /** 기간별 [유급, 무급] 인원 — 원본 시트를 보고 센 값 */
+  counts: {
+    "2021-03-01~2021-04-15": [6, 2],
+    "2021-11-16~2021-12-31": [5, 2],
+    "2022-02-01~2022-04-15": [6, 0],
+    "2022-10-01~2022-12-31": [5, 0],
+    "2023-12-01~2023-12-31": [5, 3],
+    "2024-02-16~2024-02-29": [6, 3],
+  } as Record<string, [number, number]>,
+  /** 확인용 한 사람: 2021.03.01~04.15 유급 1번 */
+  first: { name: "장동건", department: "서울/간호직", role: "지부장", group: "유급", order: 1 },
+  /** 연도별 인원(그해 마지막 기간) */
+  byYear: { "2021": 7, "2022": 5, "2023": 8, "2024": 9 } as Record<string, number>,
+};
+
+/**
+ * 노동조합 차량 지원 현황 (대) — PDF로 만든다.
+ * 2024년은 일부러 비워 두어("-") "데이터 없음" 처리를 확인한다.
+ * page: 이 값이 들어갈 PDF 페이지 번호
+ */
+export const UNION_VEHICLES: { year: string; value: number | null; page: number }[] = [
+  { year: "2020", value: 2, page: 1 },
+  { year: "2021", value: 2, page: 1 },
+  { year: "2022", value: 3, page: 1 },
+  { year: "2023", value: 3, page: 1 },
+  { year: "2024", value: null, page: 2 },
+  { year: "2025", value: 4, page: 2 },
+  { year: "2026", value: 5, page: 2 },
+];

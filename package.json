@@ -1,0 +1,43 @@
+{
+  "name": "hangster-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "samples:make": "tsx scripts/make-samples.ts",
+    "samples:check": "tsx --conditions=react-server scripts/check-samples.ts",
+    "check:describe": "tsx scripts/check-describe.ts",
+    "check:guard": "tsx scripts/check-guard.ts",
+    "check:success": "tsx --env-file=.env scripts/check-success.ts",
+    "check:gaps": "tsx --conditions=react-server scripts/check-gaps.ts",
+    "check:ratelimit": "tsx --conditions=react-server scripts/check-ratelimit.ts"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "iron-session": "^9.1.0",
+    "next": "16.4.6",
+    "openai": "^7.60.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "recharts": "^3.11.0",
+    "server-only": "^0.0.1",
+    "unpdf": "^2.2.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "@tailwindcss/turbopack": "4.3.3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.6",
+    "pdf-lib": "^1.17.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}
