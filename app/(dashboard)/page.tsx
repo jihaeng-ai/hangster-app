@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Suspense } from "react";
 import { AskBox } from "@/components/AskBox";
 import { EmptyState } from "@/components/EmptyState";
@@ -9,7 +10,27 @@ import { getDashboardData } from "@/lib/metrics/series";
 // 첫 화면: 핵심 지표 숫자 카드 (PLAN 작업 19, 22)
 export default function HomePage() {
   return (
-    <>
+    <div className="relative flex flex-col gap-6">
+      {/* 넓은 화면의 양옆 빈 곳에 캐릭터 (2026-11-20 사용자 요청: 왼쪽 의사 사자, 오른쪽 크리스마스 사자, 흰 바탕은 투명하게 처리한 그림)
+          내용을 가리지 않도록 양옆 여백이 충분한 1440px 이상 화면에서만 보인다. 꾸밈용이라 화면 읽기 프로그램에는 숨긴다 */}
+      <Image
+        src="/character-doctor.png"
+        alt=""
+        aria-hidden
+        width={246}
+        height={257}
+        priority
+        className="pointer-events-none absolute top-1/2 right-full mr-6 hidden h-auto w-44 -translate-y-1/2 select-none min-[1440px]:block min-[1700px]:w-56"
+      />
+      <Image
+        src="/character-christmas.png"
+        alt=""
+        aria-hidden
+        width={241}
+        height={278}
+        priority
+        className="pointer-events-none absolute top-1/2 left-full ml-6 hidden h-auto w-44 -translate-y-1/2 select-none min-[1440px]:block min-[1700px]:w-56"
+      />
       {/* 제목과 질문창을 하나의 네모로 */}
       <AskBox>
         <div>
@@ -20,7 +41,7 @@ export default function HomePage() {
       <Suspense fallback={<CardsFallback />}>
         <SummaryCards />
       </Suspense>
-    </>
+    </div>
   );
 }
 
