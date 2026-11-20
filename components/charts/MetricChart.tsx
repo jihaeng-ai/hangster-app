@@ -30,13 +30,15 @@ interface Props {
   categories: string[];
   /** 차트 설명 (화면 읽기 프로그램용) */
   label: string;
+  /** 세로축: "zero"(0부터, 기본) / "auto"(값 범위에 맞춤 — 꺾은선에서 작은 차이를 보이게, 2026-11-20 조합원 연도별 비교) */
+  yDomain?: "zero" | "auto";
 }
 
 function tooltipValue(unit: string) {
   return (value: unknown) => formatWithUnit(typeof value === "number" ? value : null, unit);
 }
 
-export function MetricChart({ chart, unit, rows, categories, label }: Props) {
+export function MetricChart({ chart, unit, rows, categories, label, yDomain = "zero" }: Props) {
   const formatter = tooltipValue(unit);
   const tooltip = (
     <Tooltip
@@ -49,7 +51,15 @@ export function MetricChart({ chart, unit, rows, categories, label }: Props) {
     <>
       <CartesianGrid stroke="var(--viz-grid)" vertical={false} />
       <XAxis dataKey="period" tick={axisStyle} tickLine={false} axisLine={{ stroke: "var(--viz-grid)" }} />
-      <YAxis tick={axisStyle} tickLine={false} axisLine={false} width={48} unit={unit === "%" ? "%" : undefined} />
+      <YAxis
+        tick={axisStyle}
+        tickLine={false}
+        axisLine={false}
+        width={56}
+        unit={unit === "%" ? "%" : undefined}
+        domain={yDomain === "auto" && chart === "line" ? ["dataMin - 20", "dataMax + 20"] : undefined}
+        tickFormatter={(v: number) => v.toLocaleString("ko-KR")}
+      />
     </>
   );
 

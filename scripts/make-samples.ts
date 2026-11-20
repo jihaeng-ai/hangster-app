@@ -14,8 +14,6 @@ import {
   VEHICLE_LOG,
   VEHICLE_LOG_FILE_SHEET,
   WAGE_INCREASE,
-  WORKFORCE,
-  WORKFORCE_JOBS,
 } from "./sample-data";
 
 const OUT_DIR = path.join(process.cwd(), "data", "samples");
@@ -38,11 +36,7 @@ async function makeExcel() {
   wage.addRow(["연도", "인상률(%)"]);
   for (const [year, rate] of Object.entries(WAGE_INCREASE)) wage.addRow([year, rate]);
 
-  const workforce = wb.addWorksheet("인력현황");
-  workforce.addRow(["연도", "직종", "인원(명)"]);
-  for (const [year, byJob] of Object.entries(WORKFORCE)) {
-    for (const job of WORKFORCE_JOBS) workforce.addRow([year, job, byJob[job]]);
-  }
+  // 조합원 현황은 이 파일에 넣지 않는다 — data/samples/연도별 조합원 현황.xlsx(사용자 제공, 월별·병원별)를 쓴다 (2026-11-20)
 
   // 투표율: 구분(임단협 찬반투표 / 임원(지부장) 선거)마다 한 줄씩 (2026-11-20)
   const votes = wb.addWorksheet("투표율");

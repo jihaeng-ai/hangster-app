@@ -65,7 +65,7 @@ export function AskBox({ children }: { children?: ReactNode }) {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           maxLength={200}
-          placeholder="궁금한 것을 물어보세요 (예: 올해 직종별 인원은?)"
+          placeholder="궁금한 것을 물어보세요 (예: 의료원 조합원은 몇 명이야?)"
           className="min-w-0 flex-1 rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
         />
         <button
@@ -79,7 +79,7 @@ export function AskBox({ children }: { children?: ReactNode }) {
 
       {/* 보안 점검 SEC-03: 질문 문장은 외부 AI로 가므로 개인정보를 넣지 않도록 안내 */}
       <p className="text-xs text-zinc-500">
-        개인 이름·사번·주민번호는 넣지 마세요. 질문은 부서·직종 단위로 해 주세요.
+        개인 이름·사번·주민번호는 넣지 마세요. 질문은 병원·부서 단위로 해 주세요.
       </p>
       {!answer && !pending && <Examples onPick={(q) => void ask(q)} />}
       {pending && <p className="text-sm text-zinc-500" role="status">올라온 데이터에서 답을 찾고 있습니다…</p>}

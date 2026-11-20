@@ -12,13 +12,13 @@ const ASK_LIMIT_MS = 10000; // PRD Must2-4
 const QUESTIONS: { q: string; expect: string; page: string; pageText: string }[] = [
   { q: "올해 임금 인상률은?", expect: "3.0%", page: "/", pageText: "3.0%" },
   { q: "임금 인상률이 가장 높았던 해는?", expect: "2022년", page: "/metrics/wage-increase", pageText: "2022년(4.0%)" },
-  { q: "올해 전체 조합원은 몇 명이야?", expect: "2,023명", page: "/", pageText: "2,023명" },
-  { q: "올해 직종별 조합원 중 가장 많은 직종은?", expect: "간호(812명)", page: "/metrics/workforce", pageText: "812명" },
-  { q: "조합원은 작년보다 얼마나 늘었어?", expect: "32명", page: "/metrics/workforce", pageText: "32명(1.6%) 증가" },
+  { q: "의료원 전체 조합원은 몇 명이야?", expect: "2,620명", page: "/", pageText: "2,620명" }, // 2024년 2월 서울 1,750 + 구리 870 (사용자 파일)
+  { q: "서울병원과 구리병원 중 조합원이 더 많은 곳은?", expect: "서울병원(1,750명)", page: "/metrics/workforce", pageText: "1,750명" },
+  { q: "조합원은 지난달보다 얼마나 늘었어?", expect: "53명", page: "/metrics/workforce", pageText: "53명(2.1%) 증가" },
   { q: "올해 노조 전임자는 몇 명이야?", expect: "9명", page: "/", pageText: "9명" }, // 2024년 마지막 기간(02.16~02.29) 유급 6 + 무급 3
   { q: "노조 차량 지원은 작년보다 늘었어?", expect: "1대(25.0%) 증가", page: "/metrics/union-vehicles", pageText: "1대(25.0%) 증가" },
   { q: "2024년 노조 차량 지원 대수는?", expect: "데이터 없음", page: "/metrics/union-vehicles", pageText: "2024년 값은 원본에서 확인되지 않아" }, // 버스 화면은 최근 연도를 먼저 보여주므로 변화 설명 문장으로 확인 (2026-11-20)
-  { q: "2023년 간호 조합원은 몇 명이야?", expect: "781명", page: "/metrics/workforce", pageText: "781명" },
+  { q: "2023년 12월 구리병원 조합원은 몇 명이야?", expect: "849명", page: "/metrics/workforce", pageText: "849명" },
   { q: "최근 5년 임금 인상률 추이는?", expect: "2022년~2026년", page: "/metrics/wage-increase", pageText: "2022년" },
 ];
 

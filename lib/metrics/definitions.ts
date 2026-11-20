@@ -44,12 +44,13 @@ export const METRICS: readonly MetricDefinition[] = [
     id: "workforce",
     label: "노동조합 조합원 현황", // 2026-11-20 사용자 요청으로 "의료원 인력 현황" → "노동조합 조합원 현황"
     unit: "명",
-    periodUnit: "year",
+    // 2026-11-20 사용자 자료(연도별 조합원 현황.xlsx)로 바꿈: 월별 · 병원별(서울병원, 구리병원), 의료원 = 두 병원 합
+    periodUnit: "month",
     chart: "stacked-bar",
     aggregate: "sum",
-    // 예전 이름(인력현황)으로 만든 파일도 계속 읽는다
-    sheetNames: ["인력현황", "인력 현황", "조합원현황", "조합원 현황", "노동조합 조합원 현황"],
-    pdfTitles: ["인력 현황", "의료원 인력 현황", "조합원 현황", "노동조합 조합원 현황"],
+    // 사용자 양식("YYYY년 조합원 현황" 시트)은 parse-membership.ts가 읽는다. 아래는 단순 표(연월·구분·인원) 시트 이름
+    sheetNames: ["조합원현황", "조합원 현황", "노동조합 조합원 현황"],
+    pdfTitles: ["조합원 현황", "노동조합 조합원 현황"],
   },
   {
     id: "wage-increase",

@@ -3,6 +3,7 @@ import "server-only";
 import ExcelJS from "exceljs";
 import { findMetricBySheetName, periodMatchesUnit } from "@/lib/metrics/definitions";
 import { normalizeLabel, toDateString, toNumber, toPeriod } from "./cells";
+import { readMembershipSheet, type MembershipEntry } from "./parse-membership";
 import { readRosterSheet, type RosterEntry } from "./parse-roster";
 import {
   UnreadableFileError,
@@ -101,9 +102,25 @@ export async function parseExcel(data: Uint8Array, file: { id: string; name: str
     }
   }
 
-  // 기준일: '정보' 시트, 없으면 명단의 가장 늦은 기간 끝날
+  // 월별·병원별 조합원 현황 양식(시트마다 "YYYY년 조합원 현황" 제목)도 먼저 읽어 둔다 (2026-11-20)
+  const membershipSheets = new Set<string>();
+  const membership: MembershipEntry[] = [];
+  for (const ws of wb.worksheets) {
+    if (rosterSheets.has(ws.name)) continue;
+    const entries = readMembershipSheet(ws);
+    if (entries) {
+      membershipSheets.add(ws.name);
+      membership.push(...entries);
+    }
+  }
+
+  // 기준일: '정보' 시트, 없으면 명단의 가장 늦은 기간 끝날, 그것도 없으면 조합원 현황의 마지막 달 말일
   const rosterEnd = roster.map((e) => e.periodEnd ?? "").sort().at(-1) || null;
-  const baseDate = findBaseDate(wb) ?? rosterEnd;
+  const lastMonth = membership.map((e) => e.period).sort().at(-1);
+  const membershipEnd = lastMonth
+    ? `${lastMonth}-${String(new Date(Date.UTC(Number(lastMonth.slice(0, 4)), Number(lastMonth.slice(5, 7)), 0)).getUTCDate()).padStart(2, "0")}`
+    : null;
+  const baseDate = findBaseDate(wb) ?? rosterEnd ?? membershipEnd;
   if (!baseDate) {
     throw new UnreadableFileError("기준일을 찾을 수 없습니다. '정보' 시트에 '기준일' 행을 넣어 주세요.");
   }
@@ -112,9 +129,14 @@ export async function parseExcel(data: Uint8Array, file: { id: string; name: str
   const points: DataPoint[] = [];
   const officers: UnionOfficer[] = roster.map((e) => ({ ...e, source }));
   const vehicles: VehicleSupport[] = [];
+  // 조합원 현황: 병원별 값을 "노동조합 조합원 현황"(workforce) 지표의 구분 값으로 넣는다 (의료원 = 합계)
+  for (const e of membership) {
+    points.push({ metricId: "workforce", period: e.period, category: e.hospital, value: e.value, unit: "명", source });
+  }
 
   for (const ws of wb.worksheets) {
     if (rosterSheets.has(ws.name)) continue; // 명단 시트는 위에서 읽었다
+    if (membershipSheets.has(ws.name)) continue; // 조합원 현황 시트도 위에서 읽었다
 
     // 차량 지원 내역 시트: 지원일시 · 장소 (한 줄 = 버스 한 대)
     if (VEHICLE_LOG_SHEETS.includes(normalizeLabel(ws.name))) {

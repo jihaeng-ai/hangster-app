@@ -30,7 +30,7 @@ export interface AskResponse {
 export const MESSAGES = {
   no_data: "해당 데이터가 없습니다.",
   blocked_id_number: "사번·주민번호처럼 보이는 숫자가 있어 질문을 보내지 않았습니다. 숫자를 빼고 다시 물어봐 주세요.",
-  refused_person: "개인 단위로는 답하지 않습니다. 부서·직종 단위로 물어봐 주세요.",
+  refused_person: "개인 단위로는 답하지 않습니다. 병원·부서 단위로 물어봐 주세요.",
   refused_officers: "노동조합 전임간부 명단은 AI 질문으로 다루지 않습니다. 대시보드의 '노동조합 전임간부 현황'에서 확인해 주세요.",
   legal_notice: "위법 여부 같은 노무·법률 판단은 하지 않습니다. 담당자에게 확인해 주세요.",
   not_understood: "질문을 이해하지 못했습니다. 아래 예시처럼 물어보시거나, 대시보드의 지표 버튼을 눌러 확인해 주세요.",
@@ -49,7 +49,8 @@ export function simpleResponse(status: Exclude<AskStatus, "answered" | "rate_lim
 
 const normalize = (s: string) => s.replace(/\s+/g, "");
 /** AI가 붙이는 뜻 없는 구분 낱말 (무시) */
-const GENERIC_CATEGORY = /^(직종|직종별|항목|항목별|구분|부서|부서별|전체|전체인원|인원)$/;
+// "의료원"은 서울병원+구리병원 합계라 구분 없이(전체로) 답한다 (2026-11-20)
+const GENERIC_CATEGORY = /^(직종|직종별|항목|항목별|구분|부서|부서별|전체|전체인원|인원|병원|병원별|기관|기관별|의료원|의료원전체|합계|총|총조합원)$/;
 
 type Point = { period: string; value: number | null };
 

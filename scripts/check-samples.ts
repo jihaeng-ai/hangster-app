@@ -15,8 +15,8 @@ import {
   UNION_VOTES,
   VEHICLE_LOG,
   WAGE_INCREASE,
-  WORKFORCE,
-  WORKFORCE_JOBS,
+  MEMBERSHIP_EXPECT,
+  MEMBERSHIP_FILE_NAME,
 } from "./sample-data";
 
 const SAMPLES = path.join(process.cwd(), "data", "samples");
@@ -51,10 +51,22 @@ async function main() {
     expectEqual(`임금 인상률 ${year}`, find(excel.points, "wage-increase", year)?.value, rate);
   }
   expectEqual("임금 인상률 단위", find(excel.points, "wage-increase", "2026")?.unit, "%");
-  for (const [year, byJob] of Object.entries(WORKFORCE)) {
-    for (const job of WORKFORCE_JOBS) {
-      expectEqual(`인력 ${year} ${job}`, find(excel.points, "workforce", year, job)?.value, byJob[job]);
-    }
+  expectEqual("가짜 직종별 인력 시트는 없음", excel.points.filter((p) => p.metricId === "workforce").length, 0);
+
+  // 조합원 현황 (사용자 파일, 월별·병원별)
+  const mem = await parseFile(MEMBERSHIP_FILE_NAME, new Uint8Array(readFileSync(path.join(SAMPLES, MEMBERSHIP_FILE_NAME))), "m");
+  const memPeriods = [...new Set(mem.points.map((p) => p.period))].sort();
+  expectEqual("조합원 기간 수", memPeriods.length, MEMBERSHIP_EXPECT.months);
+  expectEqual("조합원 첫 달", memPeriods[0], MEMBERSHIP_EXPECT.first);
+  expectEqual("조합원 마지막 달", memPeriods.at(-1), MEMBERSHIP_EXPECT.last);
+  expectEqual("조합원 기준일", mem.baseDate, MEMBERSHIP_EXPECT.baseDate);
+  expectEqual("조합원 값 개수(기간 × 병원 2)", mem.points.length, MEMBERSHIP_EXPECT.months * 2);
+  for (const [period, [seoul, guri, total]] of Object.entries(MEMBERSHIP_EXPECT.spot)) {
+    const s = find(mem.points, "workforce", period, "서울병원")?.value;
+    const g = find(mem.points, "workforce", period, "구리병원")?.value;
+    expectEqual(`${period} 서울병원`, s, seoul);
+    expectEqual(`${period} 구리병원`, g, guri);
+    expectEqual(`${period} 의료원(서울+구리) = 원본 의료원`, (s ?? 0) + (g ?? 0), total);
   }
   for (const [kind, byYear] of Object.entries(UNION_VOTES)) {
     for (const [year, rate] of Object.entries(byYear)) {
